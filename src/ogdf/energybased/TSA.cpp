@@ -52,19 +52,16 @@
 
 namespace ogdf {
 
-	const int TSA::m_defaultTemp = 1000;
-	const double TSA::m_defaultRadius = 100.0;
-	const int TSA::m_iterationMultiplier = 25;  //best//30;ori
-	const double TSA::m_coolingFactor = 0.80;  //0.75;ori
-	const double TSA::m_shrinkFactor = 0.8;
+	const double TSA::m_startingTemp = 1;
+	//const int TSA::m_iterationMultiplier = 25;  //best//30;ori
+	const double TSA::m_defaultEndTemperature = 1e-5;
 
 	//initializes internal data and the random number generator
 	TSA::TSA():
-	m_temperature(m_defaultTemp),
-	m_shrinkingFactor(m_shrinkFactor),
-	m_diskRadius(m_defaultRadius),
+	m_temperature(m_startingTemp),
 	m_energy(0.0),
-	m_numberOfIterations(0)
+	m_endTemperature(m_defaultEndTemperature)
+	//m_numberOfIterations(0)
 	{
 		//srand((unsigned)time(NULL));
 		srand(1234);
@@ -74,10 +71,9 @@ namespace ogdf {
 	//allow resetting in between subsequent calls
 	void TSA::initParameters()
 	{
-		m_diskRadius = m_defaultRadius;
+		m_diskRadius = computeDiskRadius(m_temperature);
 		m_energy = 0.0;
 		//m_numberOfIterations = 0; //is set in member function
-		m_shrinkingFactor = m_shrinkFactor;
 
 	}
 
@@ -88,11 +84,11 @@ namespace ogdf {
 		m_temperature=startTemp;
 	}
 
-	void TSA::setNumberOfIterations(int steps)
+	/*void TSA::setNumberOfIterations(int steps)
 	{
 		OGDF_ASSERT(steps >= 0);
 		m_numberOfIterations = steps;
-	}
+	}*/
 
 	//whenever an energy function is added, the initial energy of the new function
 	//is computed and added to the initial energy of the layout
@@ -167,61 +163,48 @@ namespace ogdf {
 		return v;
 	}
 
-	//chooses the initial radius of the disk as half the maximum of width and height of
-	//the initial layout or depending on the value of m_fineTune
-	void TSA::computeFirstRadius(const GraphAttributes &AG)
-	{
-		const Graph &G = AG.constGraph();
-		node v = G.firstNode();
-		double minX = AG.x(v);
-		double minY = AG.y(v);
-		double maxX = minX;
-		double maxY = minY;
-		forall_nodes(v,G) {
-			minX = min(minX,AG.x(v));
-			maxX = max(maxX,AG.x(v));
-			minY = min(minY,AG.y(v));
-			maxY = max(maxY,AG.y(v));
-		}
-		// compute bounding box of current layout
-		// make values nonzero
-		double w = maxX-minX+1.0;
-		double h = maxY-minY+1.0;
+	////chooses the initial radius of the disk as half the maximum of width and height of
+	////the initial layout or depending on the value of m_fineTune
+	//void TSA::computeFirstRadius(const GraphAttributes &AG)
+	//{
+	//	const Graph &G = AG.constGraph();
+	//	node v = G.firstNode();
+	//	double minX = AG.x(v);
+	//	double minY = AG.y(v);
+	//	double maxX = minX;
+	//	double maxY = minY;
+	//	forall_nodes(v,G) {
+	//		minX = min(minX,AG.x(v));
+	//		maxX = max(maxX,AG.x(v));
+	//		minY = min(minY,AG.y(v));
+	//		maxY = max(maxY,AG.y(v));
+	//	}
+	//	// compute bounding box of current layout
+	//	// make values nonzero
+	//	double w = maxX-minX+1.0;
+	//	double h = maxY-minY+1.0;
 
-		double ratio = h/w;
+	//	double ratio = h/w;
 
-		double W = sqrt(G.numberOfNodes() / ratio);
+	//	double W = sqrt(G.numberOfNodes() / ratio);
 
-		m_diskRadius = W / 5.0;//allow to move by a significant part of current layout size
-		m_diskRadius=max(m_diskRadius,max(maxX-minX,maxY-minY)/5.0);
+	//	m_diskRadius = W / 5.0;//allow to move by a significant part of current layout size
+	//	m_diskRadius=max(m_diskRadius,max(maxX-minX,maxY-minY)/5.0);
 
-		//TODO: also use node sizes
-		/*
-		double lengthSum(0.0);
-		node v;
-		forall_nodes(v,m_G) {
-			const IntersectionRectangle &i = shape(v);
-			lengthSum += i.width();
-			lengthSum += i.width();
-			}
-			lengthSum /= (2*m_G.numberOfNodes());
-			// lengthSum is now the average of all lengths and widths
-		*/
-		//change the initial radius depending on the settings
-		//this is legacy crap
-//		double divo = 2.0;
-//		if (m_fineTune == tpCoarse) {
-//			m_diskRadius = 1000.0;
-//			divo = 0.5;
-//		}
-//		if (m_fineTune == tpFine) {
-//			m_diskRadius = 10.0;
-//            divo = 15.0;
-//		}
-//		//m_diskRadius=max(m_diskRadius,max(maxX-minX,maxY-minY));
-//		m_diskRadius = max(maxX-minX,maxY-minY);
-//		m_diskRadius /= divo;
-	}
+	//	//TODO: also use node sizes
+	//	/*
+	//	double lengthSum(0.0);
+	//	node v;
+	//	forall_nodes(v,m_G) {
+	//		const IntersectionRectangle &i = shape(v);
+	//		lengthSum += i.width();
+	//		lengthSum += i.width();
+	//		}
+	//		lengthSum /= (2*m_G.numberOfNodes());
+	//		// lengthSum is now the average of all lengths and widths
+	//	*/
+	//	//change the initial radius depending on the settings
+	//}
 
 	//steps through all energy functions and adds the initial energy computed by each
 	//function for the start layout
@@ -312,14 +295,11 @@ namespace ogdf {
 
 		if(G.numberOfEdges() > 0) { //else only isolated nodes
 			computeInitialEnergy();
-			//if(m_numberOfIterations == 0)
-			//	m_numberOfIterations = m_nonIsolatedNodes.size() * m_iterationMultiplier;
 			
 			double totalCostDiff = 0, totalEntropyDiff = 0;
 			double costDiff;
 			//this is the main optimization loop
-			while(m_temperature > 1e-5) { //TODO extract to T_END variable
-				//TODO or T is not stabilised in while condition
+			while(m_temperature > m_endTemperature) { //TODO or T is not stabilised in while condition
 
 				DPoint newPos;
 				//choose random vertex and new position for vertex
@@ -354,10 +334,10 @@ namespace ogdf {
 				}
 				
 				if(totalCostDiff >= 0 || totalEntropyDiff == 0) {
-					m_temperature = 1; //TODO extract variable T_0
+					m_temperature = m_startingTemp;
 				}
 				else {
-					m_temperature = 1*(totalCostDiff / totalEntropyDiff); //TODO extract variable k_A
+					m_temperature = m_quality * (totalCostDiff / totalEntropyDiff);
 				}
 
 				m_diskRadius = computeDiskRadius(m_temperature);

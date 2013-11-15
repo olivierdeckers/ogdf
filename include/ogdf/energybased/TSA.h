@@ -69,7 +69,7 @@ public:
 	void setStartTemperature(int startTemp);
 
 	//! Sets the number of iterations for each temperature step to \a steps.
-	void setNumberOfIterations(int steps);
+	//void setNumberOfIterations(int steps);
 
 	//! Adds an energy function \a F with a certain weight.
 	void addEnergyFunction(EnergyFunction *F, double weight);
@@ -85,21 +85,18 @@ public:
 
 private:
 	//! The default starting temperature.
-	const static int m_defaultTemp;
-	//! The default starting radius.
-	const static double m_defaultRadius;
+	const static double m_startingTemp;
 	//! Per default, the number of iterations per temperature are set as a constant multiple of the number of vertices.
-	const static int m_iterationMultiplier;
-	//! The fraction by which the temperature is lowered after a temperature step is finished.
-	const static double m_coolingFactor;
-	//! the constant by which the radius of the circle around each vertex is shrunk when the temperature is lowered
-	const static double m_shrinkFactor;
+	//const static int m_iterationMultiplier; //May reintroduce this later for parallellism
+	//! The default end temperature
+	const static double m_defaultEndTemperature;
 
 	double m_temperature;          //!< The temperature during the annealing process.
-	double m_shrinkingFactor;   //!< The factor for radius.
 	double m_diskRadius;        //!< The radius of the disk around the old position of a vertex where the new position will be.
 	double m_energy;            //!< The current energy of the system.
-	int m_numberOfIterations;   //!< The number of iterations per temperature step.
+	//int m_numberOfIterations;   //!< The number of iterations per temperature step.
+	double m_quality;			//!< The quality/runtime tradeoff parameter: higher values means higher quality and higher runtime
+	double m_endTemperature;	//!< The stop condition for temperature
 
 	List<EnergyFunction*> m_energyFunctions; //!< The list of the energy functions.
 	List<double> m_weightsOfEnergyFunctions; //!< The list of the weights for the energy functions.
@@ -119,7 +116,7 @@ private:
 	double randNum() const;
 
 	//! Computes the first disk radius as the half the diamter of the enclosing rectangle.
-	void computeFirstRadius(const GraphAttributes &AG);
+	//void computeFirstRadius(const GraphAttributes &AG);
 
 	//! Computes the energy of the initial layout and stores it in \a m_energy.
 	void computeInitialEnergy();
@@ -127,6 +124,7 @@ private:
 	//! Computes positions for the vertices of degree zero.
 	void placeIsolatedNodes(GraphAttributes &AG) const;
 
+	//! Compute an appropriate disk radius based on the temperature
 	double computeDiskRadius(double temperature) const;
 
 	//! Fake assignment operator (dummy to avoid copying)

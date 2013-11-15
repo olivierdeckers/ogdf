@@ -206,14 +206,14 @@ void TSALayout::call(GraphAttributes &AG)
 		default:
 			OGDF_THROW_PARAM(AlgorithmFailureException, afcIllegalParameter);
 		}//switch
-		dh.setNumberOfIterations(m_numberOfIterations);
+		//dh.setNumberOfIterations(m_numberOfIterations);
 	}//if
 	else
 	{
-		if (m_itAsFactor)
-			dh.setNumberOfIterations(200+m_numberOfIterations*G.numberOfNodes());
-		else
-			dh.setNumberOfIterations(m_numberOfIterations);
+		//if (m_itAsFactor)
+			//dh.setNumberOfIterations(200+m_numberOfIterations*G.numberOfNodes());
+		//else
+			//dh.setNumberOfIterations(m_numberOfIterations);
 	}
 	dh.setStartTemperature(m_startTemperature);
 	dh.call(AG);
