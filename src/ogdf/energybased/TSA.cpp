@@ -298,8 +298,6 @@ namespace ogdf {
 	{
 		initParameters();
 
-		m_shrinkingFactor = m_shrinkFactor;
-
 		OGDF_ASSERT(!m_energyFunctions.empty());
 
 		const Graph &G = AG.constGraph();
@@ -310,40 +308,59 @@ namespace ogdf {
 			itSucc = it.succ();
 			if((*it)->degree() == 0) m_nonIsolatedNodes.del(it);
 		}
+
+
 		if(G.numberOfEdges() > 0) { //else only isolated nodes
-			computeFirstRadius(AG);
 			computeInitialEnergy();
-			if(m_numberOfIterations == 0)
-				m_numberOfIterations = m_nonIsolatedNodes.size() * m_iterationMultiplier;
+			//if(m_numberOfIterations == 0)
+			//	m_numberOfIterations = m_nonIsolatedNodes.size() * m_iterationMultiplier;
+			
+			double totalCostDiff = 0, totalEntropyDiff = 0;
+			double costDiff;
 			//this is the main optimization loop
-			while(m_temperature > 0) {
-				//iteration loop for each temperature
-				for(int ic = 1; ic <= m_numberOfIterations; ic ++) {
-					DPoint newPos;
-					//choose random vertex and new position for vertex
-					node v = computeCandidateLayout(AG,newPos);
-					//compute candidate energy and decide if new layout is chosen
-					ListIterator<EnergyFunction*> it;
-					ListIterator<double> it2 = m_weightsOfEnergyFunctions.begin();
-					double newEnergy = 0.0;
-					for(it = m_energyFunctions.begin(); it.valid(); it = it.succ()) {
-						newEnergy += (*it)->computeCandidateEnergy(v,newPos) * (*it2);
-						it2 = it2.succ();
-					}
-					OGDF_ASSERT(newEnergy >= 0.0);
-					//this tests if the new layout is accepted. If this is the case,
-					//all energy functions are informed that the new layout is accepted
-					if(testEnergyValue(newEnergy)) {
-						for(it = m_energyFunctions.begin(); it.valid(); it = it.succ())
-							(*it)->candidateTaken();
-						AG.x(v) = newPos.m_x;
-						AG.y(v) = newPos.m_y;
-						m_energy = newEnergy;
-					}
+			while(m_temperature > 1e-5) { //TODO extract to T_END variable
+				//TODO or T is not stabilised in while condition
+
+				DPoint newPos;
+				//choose random vertex and new position for vertex
+				node v = computeCandidateLayout(AG,newPos);
+
+				//compute candidate energy and decide if new layout is chosen
+				ListIterator<EnergyFunction*> it;
+				ListIterator<double> it2 = m_weightsOfEnergyFunctions.begin();
+				double newEnergy = 0.0;
+				for(it = m_energyFunctions.begin(); it.valid(); it = it.succ()) {
+					newEnergy += (*it)->computeCandidateEnergy(v,newPos) * (*it2);
+					it2 = it2.succ();
 				}
-				//lower the temperature and decrease the disk radius
-				m_temperature = (int)floor(m_temperature*m_coolingFactor);
-				m_diskRadius *= m_shrinkingFactor;
+				OGDF_ASSERT(newEnergy >= 0.0);
+
+				costDiff = newEnergy - m_energy;
+
+				//this tests if the new layout is accepted. If this is the case,
+				//all energy functions are informed that the new layout is accepted
+				if(testEnergyValue(newEnergy)) {
+					totalCostDiff += costDiff;
+
+					for(it = m_energyFunctions.begin(); it.valid(); it = it.succ())
+						(*it)->candidateTaken();
+					AG.x(v) = newPos.m_x;
+					AG.y(v) = newPos.m_y;
+					m_energy = newEnergy;
+				}
+
+				if(costDiff > 0) {
+					totalEntropyDiff -= costDiff / m_temperature;
+				}
+				
+				if(totalCostDiff >= 0 || totalEntropyDiff == 0) {
+					m_temperature = 1; //TODO extract variable T_0
+				}
+				else {
+					m_temperature = 1*(totalCostDiff / totalEntropyDiff); //TODO extract variable k_A
+				}
+
+				m_diskRadius = computeDiskRadius(m_temperature);
 
 				cout << "temperature: " << m_temperature << endl;
 				cout << "diskradius: " << m_diskRadius << endl;
@@ -355,5 +372,9 @@ namespace ogdf {
 		if(m_nonIsolatedNodes.size() != G.numberOfNodes())
 			placeIsolatedNodes(AG);
 
+	}
+
+	double TSA::computeDiskRadius(double temperature) const {
+		return 50 * (temperature - 1e-6);
 	}
 } //namespace

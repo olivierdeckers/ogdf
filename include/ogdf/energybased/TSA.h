@@ -95,7 +95,7 @@ private:
 	//! the constant by which the radius of the circle around each vertex is shrunk when the temperature is lowered
 	const static double m_shrinkFactor;
 
-	int m_temperature;          //!< The temperature during the annealing process.
+	double m_temperature;          //!< The temperature during the annealing process.
 	double m_shrinkingFactor;   //!< The factor for radius.
 	double m_diskRadius;        //!< The radius of the disk around the old position of a vertex where the new position will be.
 	double m_energy;            //!< The current energy of the system.
@@ -126,6 +126,8 @@ private:
 
 	//! Computes positions for the vertices of degree zero.
 	void placeIsolatedNodes(GraphAttributes &AG) const;
+
+	double computeDiskRadius(double temperature) const;
 
 	//! Fake assignment operator (dummy to avoid copying)
 	TSA& operator=(const TSA &dh);
