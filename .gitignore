@@ -1,0 +1,6 @@
+coin.vcxproj
+coin.vcxproj.filters
+include/ogdf/internal/config_autogen.h
+ogdf.sdf
+ogdf.vcxproj
+ogdf.vcxproj.filters

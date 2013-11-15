@@ -74,7 +74,8 @@ namespace ogdf {
 	m_energy(0.0),
 	m_numberOfIterations(0)
 	{
-		srand((unsigned)time(NULL));
+		//srand((unsigned)time(NULL));
+		srand(1234);
 	}
 
 
@@ -355,6 +356,11 @@ namespace ogdf {
 				//lower the temperature and decrease the disk radius
 				m_temperature = (int)floor(m_temperature*m_coolingFactor);
 				m_diskRadius *= m_shrinkingFactor;
+
+				cout << "temperature: " << m_temperature << endl;
+				cout << "diskradius: " << m_diskRadius << endl;
+				cout << "energy: " << m_energy << endl;
+
 			}
 		}
 		//if there are zero degree vertices, they are placed using placeIsolatedNodes
