@@ -214,6 +214,7 @@ void DavidsonHarelLayout::call(GraphAttributes &AG)
 		default:
 			OGDF_THROW_PARAM(AlgorithmFailureException, afcIllegalParameter);
 		}//switch
+		dh.setNumberOfIterations(m_numberOfIterations);
 	}//if
 	else
 	{
