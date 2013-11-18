@@ -60,11 +60,12 @@ namespace ogdf {
 	TSA::TSA():
 	m_temperature(m_startingTemp),
 	m_energy(0.0),
-	m_endTemperature(m_defaultEndTemperature)
+	m_endTemperature(m_defaultEndTemperature),
+	m_quality(1.0)
 	//m_numberOfIterations(0)
 	{
-		//srand((unsigned)time(NULL));
-		srand(1234);
+		srand((unsigned)time(NULL));
+		//srand(1234);
 	}
 
 
@@ -74,11 +75,15 @@ namespace ogdf {
 		m_diskRadius = computeDiskRadius(m_temperature);
 		m_energy = 0.0;
 		//m_numberOfIterations = 0; //is set in member function
-
 	}
 
+	void TSA::setQuality(double quality) 
+	{
+		OGDF_ASSERT(quality >= 0 && quality <= 1);
+		m_quality = quality;
+	}
 
-	void TSA::setStartTemperature(int startTemp)
+	void TSA::setStartTemperature(double startTemp)
 	{
 		OGDF_ASSERT(startTemp >= 0);
 		m_temperature=startTemp;

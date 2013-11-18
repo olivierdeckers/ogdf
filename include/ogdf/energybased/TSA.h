@@ -66,7 +66,9 @@ public:
 	~TSA() { }
 
 	//! Sets the start temperature to \a startTemp.
-	void setStartTemperature(int startTemp);
+	void setStartTemperature(double startTemp);
+
+	void setQuality(double quality);
 
 	//! Sets the number of iterations for each temperature step to \a steps.
 	//void setNumberOfIterations(int steps);

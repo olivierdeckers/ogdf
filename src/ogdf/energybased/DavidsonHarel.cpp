@@ -74,8 +74,8 @@ namespace ogdf {
 	m_energy(0.0),
 	m_numberOfIterations(0)
 	{
-		//srand((unsigned)time(NULL));
-		srand(1234);
+		srand((unsigned)time(NULL));
+		//srand(1234);
 	}
 
 

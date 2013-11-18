@@ -76,6 +76,8 @@ public:
 	 */
 	void setSpeed(SpeedParameter sp);
 
+	void setQuality(double quality);
+
 	//! Sets the preferred edge length multiplier for attraction.
 	/**
 	 * This is bad design, cause you dont need to have an attraction function,
@@ -138,6 +140,7 @@ private:
 	double m_prefEdgeLength;    //!< Preferred edge length (abs value), only used if > 0
 	bool m_crossings;           //!< Should crossings be computed?
 	bool m_itAsFactor;          //!< Should m_numberOfIterations be factor (true) or fixed number
+	double m_quality;
 };
 
 }

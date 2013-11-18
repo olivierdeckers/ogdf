@@ -52,6 +52,7 @@
 #define DEFAULT_PLANARITY_WEIGHT 500
 #define DEFAULT_ITERATIONS 0
 #define DEFAULT_START_TEMPERATURE 500
+#define DEFAULT_TSA_QUALITY 0.9
 
 namespace ogdf {
 
@@ -77,6 +78,7 @@ TSALayout::TSALayout()
 	m_multiplier = 2.0;
 	m_prefEdgeLength = 0.0;
 	m_crossings = false;
+	m_quality = DEFAULT_TSA_QUALITY;
 }
 
 
@@ -108,6 +110,11 @@ void TSALayout::setSpeed(SpeedParameter sp)
 	m_speed = sp;
 	m_numberOfIterations = 0;
 }//setSpeed
+
+void TSALayout::setQuality(double quality)
+{
+	m_quality = quality;
+}
 
 
 void TSALayout::setRepulsionWeight(double w)
@@ -216,6 +223,7 @@ void TSALayout::call(GraphAttributes &AG)
 			//dh.setNumberOfIterations(m_numberOfIterations);
 	}
 	dh.setStartTemperature(m_startTemperature);
+	dh.setQuality(m_quality);
 	dh.call(AG);
 }
 
