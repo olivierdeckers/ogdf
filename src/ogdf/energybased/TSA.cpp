@@ -303,8 +303,9 @@ namespace ogdf {
 			
 			double totalCostDiff = 0, totalEntropyDiff = 0;
 			double costDiff;
+			int i = 0;
 			//this is the main optimization loop
-			while(m_temperature > m_endTemperature) { //TODO or T is not stabilised in while condition
+			while(m_temperature > m_endTemperature || i < 20) {
 
 				DPoint newPos;
 				//choose random vertex and new position for vertex
@@ -350,7 +351,9 @@ namespace ogdf {
 				cout << "temperature: " << m_temperature << endl;
 				cout << "diskradius: " << m_diskRadius << endl;
 				cout << "energy: " << m_energy << endl;
+				cout << "iteration: " << i << endl;
 
+				i ++;
 			}
 		}
 		//if there are zero degree vertices, they are placed using placeIsolatedNodes
