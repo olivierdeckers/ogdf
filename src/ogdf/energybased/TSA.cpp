@@ -79,7 +79,7 @@ namespace ogdf {
 
 	void TSA::setQuality(double quality) 
 	{
-		OGDF_ASSERT(quality >= 0 && quality <= 1);
+		OGDF_ASSERT(quality >= 0);
 		m_quality = quality;
 	}
 

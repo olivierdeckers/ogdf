@@ -50,9 +50,8 @@
 #define DEFAULT_ATTRACTION_WEIGHT 1e2
 #define DEFAULT_OVERLAP_WEIGHT 100
 #define DEFAULT_PLANARITY_WEIGHT 500
-#define DEFAULT_ITERATIONS 0
 #define DEFAULT_START_TEMPERATURE 500
-#define DEFAULT_TSA_QUALITY 0.9
+#define DEFAULT_TSA_QUALITY 10
 
 namespace ogdf {
 
@@ -71,10 +70,7 @@ TSALayout::TSALayout()
 	m_attractionWeight = DEFAULT_ATTRACTION_WEIGHT;
 	m_nodeOverlapWeight = DEFAULT_OVERLAP_WEIGHT;
 	m_planarityWeight = DEFAULT_PLANARITY_WEIGHT;
-	m_numberOfIterations = DEFAULT_ITERATIONS;
-	m_itAsFactor = false;
 	m_startTemperature = DEFAULT_START_TEMPERATURE;
-	m_speed    = sppMedium;
 	m_multiplier = 2.0;
 	m_prefEdgeLength = 0.0;
 	m_crossings = false;
@@ -103,13 +99,6 @@ void TSALayout::fixSettings(SettingsParameter sp)
 	setNodeOverlapWeight(o);
 	setPlanarityWeight(p);
 }//fixSettings
-
-
-void TSALayout::setSpeed(SpeedParameter sp)
-{
-	m_speed = sp;
-	m_numberOfIterations = 0;
-}//setSpeed
 
 void TSALayout::setQuality(double quality)
 {
@@ -142,13 +131,6 @@ void TSALayout::setPlanarityWeight(double w)
 {
 	if(w < 0) throw WeightLessThanZeroException();
 	else m_planarityWeight = w;
-}
-
-
-void TSALayout::setNumberOfIterations(int w)
-{
-	if(w < 0) throw IterationsNonPositive();
-	else m_numberOfIterations = w;
 }
 
 
@@ -193,35 +175,6 @@ void TSALayout::call(GraphAttributes &AG)
 	//dh.setNumberOfIterations(m_numberOfIterations);
 	//dh.setStartTemperature(m_startTemperature);
 	const Graph& G = AG.constGraph();
-	//TODO: Number of iterations always depending on size
-	if (m_numberOfIterations == 0)
-	{
-		switch (m_speed)  //todo: function setSpeedParameters
-		{
-		case sppFast:
-			m_numberOfIterations = max(75, 3*G.numberOfNodes());
-			m_startTemperature = 400;
-			break;
-		case sppMedium:
-			m_numberOfIterations = 10*G.numberOfNodes();
-			m_startTemperature = 1500;
-			break;
-		case sppHQ:
-			m_numberOfIterations = 2500*G.numberOfNodes(); //should be: isolate
-			m_startTemperature = 2000;
-			break;
-		default:
-			OGDF_THROW_PARAM(AlgorithmFailureException, afcIllegalParameter);
-		}//switch
-		//dh.setNumberOfIterations(m_numberOfIterations);
-	}//if
-	else
-	{
-		//if (m_itAsFactor)
-			//dh.setNumberOfIterations(200+m_numberOfIterations*G.numberOfNodes());
-		//else
-			//dh.setNumberOfIterations(m_numberOfIterations);
-	}
 	dh.setStartTemperature(m_startTemperature);
 	dh.setQuality(m_quality);
 	dh.call(AG);

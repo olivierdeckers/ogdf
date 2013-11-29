@@ -55,9 +55,6 @@ public:
 	//! Easy way to set fixed costs
 	enum SettingsParameter {spStandard, spRepulse, spPlanar}; //tuning of costs
 
-	//! Easy way to set temperature and iterations
-	enum SpeedParameter {sppFast, sppMedium, sppHQ};
-
 	//! Creates an instance of TSA layout.
 	TSALayout();
 
@@ -68,13 +65,6 @@ public:
 
 	//! Fixes the cost values to special configurations.
 	void fixSettings(SettingsParameter sp);
-
-	//! More convenient way of setting the speed of the algorithm.
-	/**
-	 * Influences number of iterations per temperature step, starting
-	 * temperature, and cooling factor.
-	 */
-	void setSpeed(SpeedParameter sp);
 
 	void setQuality(double quality);
 
@@ -118,28 +108,15 @@ public:
 	//! Returns the starting temperature.
 	int getStartTemperature() const {return m_startTemperature;}
 
-	//! Sets the number of iterations per temperature step to \a steps.
-	void setNumberOfIterations(int steps);
-
-	//! Returns the number of iterations per temperature step.
-	int getNumberOfIterations() const {return m_numberOfIterations;}
-
-	//! Switch between using iteration number as fixed number or factor
-	//! (*number of nodes of graph)
-	void setIterationNumberAsFactor(bool b) {m_itAsFactor = b;}
-
 private:
 	double m_repulsionWeight;   //!< The weight for repulsion energy.
 	double m_attractionWeight;  //!< The weight for attraction energy.
 	double m_nodeOverlapWeight; //!< The weight for node overlap energy.
 	double m_planarityWeight;   //!< The weight for edge crossing energy.
 	int m_startTemperature;     //!< The temperature at the start of the optimization.
-	int m_numberOfIterations;   //!< The number of iterations per temperature step.
-	SpeedParameter m_speed;     //!< You can override this by manually setting iter=0.
-	double m_multiplier;        //!< By default, number of iterations per temperature step is number of vertices multiplied by multiplier.
+	double m_multiplier;        //!< edge length multiplier
 	double m_prefEdgeLength;    //!< Preferred edge length (abs value), only used if > 0
 	bool m_crossings;           //!< Should crossings be computed?
-	bool m_itAsFactor;          //!< Should m_numberOfIterations be factor (true) or fixed number
 	double m_quality;
 };
 
