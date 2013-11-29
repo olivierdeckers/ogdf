@@ -309,6 +309,7 @@ namespace ogdf {
 			double totalCostDiff = 0, totalEntropyDiff = 0;
 			double costDiff;
 			int i = 0;
+			int iterationsSinceLastChange = 0;
 			//this is the main optimization loop
 			while((m_temperature > m_endTemperature || i < 20) && m_diskRadius >= 1) {
 
@@ -338,6 +339,8 @@ namespace ogdf {
 					AG.x(v) = newPos.m_x;
 					AG.y(v) = newPos.m_y;
 					m_energy = newEnergy;
+
+					iterationsSinceLastChange = 0;
 				}
 
 				if(costDiff > 0) {
@@ -357,6 +360,10 @@ namespace ogdf {
 				cout << "diskradius: " << m_diskRadius << endl;
 				cout << "energy: " << m_energy << endl;
 				cout << "iteration: " << i << endl;
+				iterationsSinceLastChange ++;
+
+				if(iterationsSinceLastChange > 1000)
+					break;
 
 				i ++;
 			}
