@@ -310,7 +310,7 @@ namespace ogdf {
 			double costDiff;
 			int i = 0;
 			//this is the main optimization loop
-			while(m_temperature > m_endTemperature || i < 20) {
+			while((m_temperature > m_endTemperature || i < 20) && m_diskRadius >= 1) {
 
 				DPoint newPos;
 				//choose random vertex and new position for vertex
