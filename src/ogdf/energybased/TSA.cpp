@@ -52,7 +52,7 @@
 
 namespace ogdf {
 
-	const double TSA::m_startingTemp = 1;
+	const double TSA::m_startingTemp = 1e-2;
 	//const int TSA::m_iterationMultiplier = 25;  //best//30;ori
 	const double TSA::m_defaultEndTemperature = 1e-5;
 
@@ -64,8 +64,7 @@ namespace ogdf {
 	m_quality(1.0)
 	//m_numberOfIterations(0)
 	{
-		srand((unsigned)time(NULL));
-		//srand(1234);
+		
 	}
 
 
@@ -75,6 +74,12 @@ namespace ogdf {
 		m_diskRadius = computeDiskRadius(m_temperature);
 		m_energy = 0.0;
 		//m_numberOfIterations = 0; //is set in member function
+
+		unsigned int t = (unsigned) time(NULL);
+		//srand(t);
+		cout << "seed: " << t << endl;
+		srand(t);
+		//srand((unsigned int) 1385114936);
 	}
 
 	void TSA::setQuality(double quality) 

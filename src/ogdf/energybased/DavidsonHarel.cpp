@@ -74,8 +74,6 @@ namespace ogdf {
 	m_energy(0.0),
 	m_numberOfIterations(0)
 	{
-		srand((unsigned)time(NULL));
-		//srand(1234);
 	}
 
 
@@ -87,6 +85,7 @@ namespace ogdf {
 		//m_numberOfIterations = 0; //is set in member function
 		m_shrinkingFactor = m_shrinkFactor;
 
+		srand((unsigned)time(NULL));
 	}
 
 
