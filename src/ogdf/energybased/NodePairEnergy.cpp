@@ -130,11 +130,11 @@ void NodePairEnergy::compCandEnergy()
 	node s = sourceTestNode();
 	node t = targetTestNode();
 	int nums = (*m_nodeNums)[s];
-	int numt = (*m_nodeNums)[t];
 
 	compCandEnergy(s, t, sourceTestPos());
 
 	if(t != NULL) {
+		int numt = (*m_nodeNums)[t];
 		compCandEnergy(t, s, targetTestPos());
 
 		m_candidateEnergy -= (*m_pairEnergy)(min(nums,numt),max(nums,numt));
