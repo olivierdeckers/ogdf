@@ -81,7 +81,7 @@ double EnergyFunction::computeCandidateEnergy(const node v, const DPoint &testPo
 	m_sourceTestPos = testPos;
 	m_sourceTestNode = v;
 	compCandEnergy();
-	OGDF_ASSERT(m_candidateEnergy >= 0.0);
+	OGDF_ASSERT(m_candidateEnergy >= -1e-10);
 	return m_candidateEnergy;
 }
 
