@@ -72,11 +72,11 @@ private:
 	struct ChangedCrossing {
 		int edgeNum1;
 		int edgeNum2;
-		bool cross;
+		double crossEnergy;
 	};
 
 	//! Returns 1 if edges cross else 0.
-	bool intersect(const edge, const edge) const;
+	bool intersect(const edge, const edge, double&) const;
 
 	//! Computes energy of candidate.
 	void compCandEnergy();
@@ -89,14 +89,14 @@ private:
 
 	//! Tests if two lines given by four points intersect.
 	bool lowLevelIntersect( const DPoint&, const DPoint&, const DPoint&,
-		 const DPoint&) const;
+		 const DPoint&, double&) const;
 
 #ifdef OGDF_DEBUG
 		virtual void printInternalData() const;
 #endif
 
-	EdgeArray<int> *m_edgeNums; //!< numbers of edges
-	Array2D<bool> *m_crossingMatrix; //!< stores for each pair of edges if they cross
+	EdgeArray<int> *m_edgeNums; //!< Maps an edge to the index used in the crossingsMatrix
+	Array2D<double> *m_crossingMatrix; //!< stores for each pair of edges if they cross
 
 	/**
 	 * stores for all edges incident to the test node

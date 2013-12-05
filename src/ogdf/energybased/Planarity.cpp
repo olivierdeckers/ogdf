@@ -65,7 +65,7 @@ namespace ogdf {
 		int e_num = 1;
 		for(it = m_nonSelfLoops.begin(); it.valid(); ++it) (*m_edgeNums)[*it] = e_num ++;
 		e_num --;
-		m_crossingMatrix = new Array2D<bool> (1,e_num,1,e_num);
+		m_crossingMatrix = new Array2D<double> (1,e_num,1,e_num);
 	}
 
 
@@ -73,7 +73,7 @@ namespace ogdf {
 	void Planarity::computeEnergy()
 	{
 		int e_num = m_nonSelfLoops.size();
-		int energySum = 0;
+		double energySum = 0;
 		Array<edge> numEdge(1,e_num);
 		edge e;
 		ListIterator<edge> it;
@@ -83,9 +83,10 @@ namespace ogdf {
 		for(int i = 1; i < e_num; i++) {
 			e = numEdge[i];
 			for(int j = i+1; j <= e_num ; j++) {
-				bool cross = intersect(e,numEdge[j]);
-				(*m_crossingMatrix)(i,j) = cross;
-				if(cross) energySum += 1;
+				double energy = 0;
+				bool cross = intersect(e,numEdge[j], energy);
+				(*m_crossingMatrix)(i,j) = cross ? energy : 0;
+				if(cross) energySum += energy;
 			}
 		}
 		m_energy = energySum;
@@ -93,7 +94,7 @@ namespace ogdf {
 
 
 	// tests if two edges cross
-	bool Planarity::intersect(const edge e1, const edge e2) const
+	bool Planarity::intersect(const edge e1, const edge e2, double &energy) const
 	{
 		node v1s = e1->source();
 		node v1t = e1->target();
@@ -101,8 +102,9 @@ namespace ogdf {
 		node v2t = e2->target();
 
 		bool cross = false;
+		DPoint inter;
 		if(v1s != v2s && v1s != v2t && v1t != v2s && v1t != v2t)
-			cross = lowLevelIntersect(currentPos(v1s),currentPos(v1t), currentPos(v2s),currentPos(v2t));
+			cross = lowLevelIntersect(currentPos(v1s),currentPos(v1t), currentPos(v2s),currentPos(v2t), energy);
 		return cross;
 	}
 
@@ -112,12 +114,23 @@ namespace ogdf {
 		const DPoint &e1s,
 		const DPoint &e1t,
 		const DPoint &e2s,
-		const DPoint &e2t) const
+		const DPoint &e2t,
+		double &energy) const
 	{
 		DPoint s1(e1s),t1(e1t),s2(e2s),t2(e2t);
 		DLine l1(s1,t1), l2(s2,t2);
 		DPoint dummy;
-		return l1.intersection(l2,dummy);
+		bool intersect = l1.intersection(l2,dummy);
+		if(intersect) {
+			double length = l1.length()/2.0;
+			double interDist = min(t1.distance(dummy), s1.distance(dummy));
+
+			energy = interDist / length;
+		}
+		else {
+			energy = 0;
+		}
+		return intersect;
 	}
 
 
@@ -145,16 +158,18 @@ namespace ogdf {
 				node s2 = f->source();
 				node t2 = f->target();
 				if(s2 != s && s2 != t && t2 != s && t2 != t) {
-					bool cross = lowLevelIntersect(p1,p2,currentPos(s2),currentPos(t2));
+					double intersectEnergy = 0;
+					bool cross = lowLevelIntersect(p1,p2,currentPos(s2),currentPos(t2), intersectEnergy);
 					int f_num = (*m_edgeNums)[f];
-					bool priorIntersect = (*m_crossingMatrix)(min(e_num,f_num),max(e_num,f_num));
-					if(priorIntersect != cross) {
-						if(priorIntersect) m_candidateEnergy --; // this intersection was saved
-						else m_candidateEnergy ++; // produced a new intersection
+					double priorIntersectEnergy = (*m_crossingMatrix)(min(e_num,f_num),max(e_num,f_num));
+					
+					if(priorIntersectEnergy != intersectEnergy) {
+						m_candidateEnergy -= priorIntersectEnergy; // this intersection was saved
+						m_candidateEnergy += intersectEnergy; // produced a new intersection
 						ChangedCrossing cc;
 						cc.edgeNum1 = min(e_num,f_num);
 						cc.edgeNum2 = max(e_num,f_num);
-						cc.cross = cross;
+						cc.crossEnergy = intersectEnergy;
 						m_crossingChanges.pushBack(cc);
 					}
 				}
@@ -168,7 +183,7 @@ namespace ogdf {
 		ListIterator<ChangedCrossing> it;
 		for(it = m_crossingChanges.begin(); it.valid(); ++ it) {
 			ChangedCrossing cc = *(it);
-			(*m_crossingMatrix)(cc.edgeNum1,cc.edgeNum2) = cc.cross;
+			(*m_crossingMatrix)(cc.edgeNum1,cc.edgeNum2) = cc.crossEnergy;
 		}
 	}
 
@@ -188,7 +203,7 @@ void Planarity::printInternalData() const {
 		ListConstIterator<ChangedCrossing> it;
 		for(it = m_crossingChanges.begin(); it.valid(); ++it) {
 			ChangedCrossing cc = *(it);
-			cout << " (" << cc.edgeNum1 << "," << cc.edgeNum2 << ")" << cc.cross;
+			cout << " (" << cc.edgeNum1 << "," << cc.edgeNum2 << ")" << cc.crossEnergy;
 		}
 	}
 }
