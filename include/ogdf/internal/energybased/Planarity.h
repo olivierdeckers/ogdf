@@ -80,6 +80,7 @@ private:
 
 	//! Computes energy of candidate.
 	void compCandEnergy();
+	void compCandEnergy(const node, const node, const DPoint);
 
 	//! Changes internal data if candidate is taken.
 	void internalCandidateTaken();

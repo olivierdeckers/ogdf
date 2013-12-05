@@ -150,20 +150,35 @@ namespace ogdf {
 
 	//chooses random vertex and a new random position for it on a circle with radius m_diskRadius
 	//around its previous position
-	node TSA::computeCandidateLayout(
+	edge TSA::computeCandidateLayout(
 	const GraphAttributes &AG,
-	DPoint &newPos) const
+	DPoint &newSourcePos, DPoint &newTargetPos) const
 	{
 		int randomPos = randomNumber(0,m_nonIsolatedNodes.size()-1);
-		node v = *(m_nonIsolatedNodes.get(randomPos));
-		double oldx = AG.x(v);
-		double oldy = AG.y(v);
-		double randomAngle = randNum() * 2.0 * Math::pi;
-		newPos.m_y = oldy+sin(randomAngle)*m_diskRadius * randNum();
-		newPos.m_x = oldx+cos(randomAngle)*m_diskRadius * randNum();
-		return v;
-	}
+		node s = *(m_nonIsolatedNodes.get(randomPos));
+		int randomNeighbour = randomNumber(0, s->degree()-1);
+		adjEntry ae = s->firstAdj();
+		for(int i=0; i<randomNeighbour; i++)
+			ae = ae->succ();
+		edge e = ae->theEdge();
 
+		s = e->source();
+		node t = e->target();
+
+		double oldx = AG.x(s);
+		double oldy = AG.y(s);
+		double randomAngle = randNum() * 2.0 * Math::pi;
+		newSourcePos.m_y = oldy+sin(randomAngle)*m_diskRadius * randNum();
+		newSourcePos.m_x = oldx+cos(randomAngle)*m_diskRadius * randNum();
+
+		oldx = AG.x(t);
+		oldy = AG.y(t);
+		randomAngle = randNum() * 2.0 * Math::pi;
+		newTargetPos.m_y = oldy+sin(randomAngle)*m_diskRadius * randNum();
+		newTargetPos.m_x = oldx+cos(randomAngle)*m_diskRadius * randNum();
+
+		return e;
+	}
 
 	//steps through all energy functions and adds the initial energy computed by each
 	//function for the start layout
@@ -233,6 +248,8 @@ namespace ogdf {
 		}
 	}
 
+
+
 	//this is the main optimization routine with the loop that lowers the temperature
 	//and the disk radius geometrically until the temperature is zero. For each
 	//temperature, a certain number of new positions for a random vertex are tried
@@ -262,16 +279,16 @@ namespace ogdf {
 			//this is the main optimization loop
 			while((m_temperature > m_endTemperature || i < 20) && m_diskRadius >= 1) {
 
-				DPoint newPos;
+				DPoint newSourcePos, newTargetPos;
 				//choose random vertex and new position for vertex
-				node v = computeCandidateLayout(AG,newPos);
+				edge e = computeCandidateLayout(AG,newSourcePos,newTargetPos);
 
 				//compute candidate energy and decide if new layout is chosen
 				ListIterator<EnergyFunction*> it;
 				ListIterator<double> it2 = m_weightsOfEnergyFunctions.begin();
 				double newEnergy = 0.0;
 				for(it = m_energyFunctions.begin(); it.valid(); it = it.succ()) {
-					newEnergy += (*it)->computeCandidateEnergy(v,newPos) * (*it2);
+					newEnergy += (*it)->computeCandidateEnergy(e,newSourcePos,newTargetPos) * (*it2);
 					it2 = it2.succ();
 				}
 				OGDF_ASSERT(newEnergy >= 0.0);
@@ -285,8 +302,11 @@ namespace ogdf {
 
 					for(it = m_energyFunctions.begin(); it.valid(); it = it.succ())
 						(*it)->candidateTaken();
-					AG.x(v) = newPos.m_x;
-					AG.y(v) = newPos.m_y;
+
+					AG.x(e->source()) = newSourcePos.m_x;
+					AG.y(e->source()) = newSourcePos.m_y;
+					AG.x(e->target()) = newTargetPos.m_x;
+					AG.y(e->target()) = newTargetPos.m_y;
 					m_energy = newEnergy;
 
 					iterationsSinceLastChange = 0;

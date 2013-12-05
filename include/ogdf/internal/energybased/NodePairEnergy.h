@@ -91,7 +91,7 @@ protected:
 private:
 	NodeArray<int> *m_nodeNums;//stores internal number of each vertex
 	Array2D<double> *m_pairEnergy;//stores for each pair of vertices its energy
-	NodeArray<double> m_candPairEnergy;//stores for each vertex its pair energy with
+	Array2D<double> *m_candPairEnergy;//stores for each vertex its pair energy with
 	//respect to the vertex to be moved if its new position is chosen
 	NodeArray<IntersectionRectangle> m_shape;//stores the shape of each vertex as
 	//an IntersectionRectangle
@@ -103,10 +103,12 @@ private:
 
 	//computes energy of whole layout if new position of the candidate vertex is chosen
 	void compCandEnergy();
+	void compCandEnergy(const node, const node, const DPoint);
 
 	//If a candidate change is chosen as the new position, this function sets the
 	//internal data accordingly
 	void internalCandidateTaken();
+	void internalCandidateTaken(const node);
 };
 
 

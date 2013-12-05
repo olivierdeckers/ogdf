@@ -134,11 +134,49 @@ namespace ogdf {
 	}
 
 
-	// computes the energy if the node returned by testNode() is moved
-	// to position testPos().
 	void Planarity::compCandEnergy()
 	{
-		node v = testNode();
+		node s = sourceTestNode();
+		node t = targetTestNode();
+
+		compCandEnergy(s, t, sourceTestPos());
+		
+		if(t != NULL) {
+			compCandEnergy(t, s, targetTestPos());
+
+			//calculate candidate energy for moved edge
+			edge e,f;
+			forall_adj_edges(e, s) if(e->target() == t) {
+				int e_num = (*m_edgeNums)[e];
+				ListIterator<edge> it;
+				for(it = m_nonSelfLoops.begin(); it.valid(); ++it) {
+					f = *it;
+					node s2 = f->source();
+					node t2 = f->target();
+					int f_num = (*m_edgeNums)[f];
+
+					double intersectEnergy = 0;
+					bool cross = lowLevelIntersect(sourceTestPos(),targetTestPos(),currentPos(s2),currentPos(t2), intersectEnergy);
+					double priorIntersectEnergy = (*m_crossingMatrix)(min(e_num,f_num),max(e_num,f_num));
+
+					if(priorIntersectEnergy != intersectEnergy) {
+						m_candidateEnergy -= priorIntersectEnergy; // this intersection was saved
+						m_candidateEnergy += intersectEnergy; // produced a new intersection
+						ChangedCrossing cc;
+						cc.edgeNum1 = min(e_num,f_num);
+						cc.edgeNum2 = max(e_num,f_num);
+						cc.crossEnergy = intersectEnergy;
+						m_crossingChanges.pushBack(cc);
+					}
+				}
+			}
+		}
+	}
+
+	// computes the energy if the node returned by testNode() is moved
+	// to position testPos().
+	void Planarity::compCandEnergy(const node v, const node ignore, const DPoint newPos)
+	{
 		m_candidateEnergy = energy();
 		edge e;
 		m_crossingChanges.clear();
@@ -147,7 +185,12 @@ namespace ogdf {
 			// first we compute the two endpoints of e if v is on its new position
 			node s = e->source();
 			node t = e->target();
-			DPoint p1 = testPos();
+
+			if((s == v && t == ignore) || (s == ignore && t == v)) {
+				continue;
+			}
+
+			DPoint p1 = newPos;
 			DPoint p2 = (s==v)? currentPos(t) : currentPos(s);
 			int e_num = (*m_edgeNums)[e];
 			edge f;
@@ -157,6 +200,11 @@ namespace ogdf {
 				f = *it;
 				node s2 = f->source();
 				node t2 = f->target();
+
+				if((s2 == v && t2 == ignore) || (s2 == ignore && t2 == v)) {
+					continue;
+				}
+
 				if(s2 != s && s2 != t && t2 != s && t2 != t) {
 					double intersectEnergy = 0;
 					bool cross = lowLevelIntersect(p1,p2,currentPos(s2),currentPos(t2), intersectEnergy);
@@ -198,7 +246,7 @@ void Planarity::printInternalData() const {
 			if((*m_crossingMatrix)(i,j)) cout << j << " ";
 	}
 	cout << "\nChanged crossings:";
-	if(testNode() == NULL) cout << " None.";
+	if(sourceTestNode() == NULL) cout << " None.";
 	else {
 		ListConstIterator<ChangedCrossing> it;
 		for(it = m_crossingChanges.begin(); it.valid(); ++it) {

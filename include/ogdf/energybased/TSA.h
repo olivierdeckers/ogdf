@@ -103,7 +103,7 @@ private:
 	void initParameters();
 
 	//! Randomly computes a node and a new position for that node.
-	node computeCandidateLayout(const GraphAttributes &, DPoint &) const;
+	edge computeCandidateLayout(const GraphAttributes &, DPoint &, DPoint &) const;
 
 	//! Tests if new energy value satisfies annealing property (only better if m_fineTune).
 	bool testEnergyValue(double newVal);

@@ -77,6 +77,11 @@ public:
 		const node v,
 		const DPoint &newPos);
 
+	double computeCandidateEnergy(
+		const edge e,
+		const DPoint &newSourcePos,
+		const DPoint &newTargetPos);
+
 	//! prints the name of the energy function
 	string getName() const { return m_name; }
 
@@ -97,13 +102,15 @@ protected:
 	double m_energy; //!< energy of the current layout
 
 	//! returns candidate position for the node to be moved
-	DPoint testPos() { return m_testPos; }
+	DPoint sourceTestPos() { return m_sourceTestPos; }
+	DPoint targetTestPos() { return m_targetTestPos; }
 
 	//! returns the current position of vertex v
 	DPoint currentPos(const node v) const { return DPoint(m_AG.x(v),m_AG.y(v)); }
 
 	//! returns the vertex that is under consideration in the current step
-	node testNode() const { return m_testNode; }
+	node sourceTestNode() const { return m_sourceTestNode; }
+	node targetTestNode() const { return m_targetTestNode; }
 
 	//! changes the data of a specific energy function if the candidate was taken
 	virtual void internalCandidateTaken() = 0;
@@ -123,8 +130,10 @@ private:
 	EnergyFunction& operator=(const EnergyFunction &e);
 
 	GraphAttributes& m_AG;	//!< This stores the graph with its graphical attributes and the current positions for the vertices
-	node m_testNode; //!< The node that changed position in the candidate
-	DPoint m_testPos; //!< New candidate positions for m_testNode
+	node m_sourceTestNode; //!< The source node that changed position in the candidate
+	node m_targetTestNode; //!< The target node that changed posiiton in the candidate
+	DPoint m_sourceTestPos; //!< candidate edge source node position
+	DPoint m_targetTestPos; //!< candidate edge target node position
 };
 
 }// end namespace

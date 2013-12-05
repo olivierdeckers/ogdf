@@ -49,7 +49,6 @@ namespace ogdf {
 
 NodePairEnergy::NodePairEnergy(const string energyname, GraphAttributes &AG) :
 	EnergyFunction(energyname,AG),
-	m_candPairEnergy(m_G),
 	m_shape(m_G),
 	m_adjacentOracle(m_G)
 {
@@ -75,6 +74,7 @@ NodePairEnergy::NodePairEnergy(const string energyname, GraphAttributes &AG) :
 	}
 	n_num--;
 	m_pairEnergy = new Array2D<double> (1,n_num,1,n_num);
+	m_candPairEnergy = new Array2D<double> (1,n_num,1,n_num);
 }
 
 
@@ -105,14 +105,21 @@ double NodePairEnergy::computePairEnergy(const node v, const node w) const {
 
 
 void NodePairEnergy::internalCandidateTaken() {
-	node v = testNode();
-	int candNum = (*m_nodeNums)[v];
+	node s = sourceTestNode();
+	internalCandidateTaken(s);
+	node t = targetTestNode();
+	if(t != NULL) 
+		internalCandidateTaken(t);
+}
+
+void NodePairEnergy::internalCandidateTaken(const node n) {
+	int candNum = (*m_nodeNums)[n];
 	ListIterator<node> it;
 	for(it = m_nonIsolated.begin(); it.valid(); ++ it) {
-		if((*it) != v) {
+		if((*it) != n) {
 			int numit = (*m_nodeNums)[*it];
-			(*m_pairEnergy)(min(numit,candNum),max(numit,candNum)) = m_candPairEnergy[*it];
-			m_candPairEnergy[*it] = 0.0;
+			(*m_pairEnergy)(min(numit,candNum),max(numit,candNum)) = (*m_candPairEnergy)(min(numit,candNum),max(numit,candNum));
+			(*m_candPairEnergy)(min(numit,candNum),max(numit,candNum)) = 0.0;
 		}
 	}
 }
@@ -120,34 +127,58 @@ void NodePairEnergy::internalCandidateTaken() {
 
 void NodePairEnergy::compCandEnergy()
 {
-	node v = testNode();
+	node s = sourceTestNode();
+	node t = targetTestNode();
+	int nums = (*m_nodeNums)[s];
+	int numt = (*m_nodeNums)[t];
+
+	compCandEnergy(s, t, sourceTestPos());
+
+	if(t != NULL) {
+		compCandEnergy(t, s, targetTestPos());
+
+		m_candidateEnergy -= (*m_pairEnergy)(min(nums,numt),max(nums,numt));
+		double coordEnergy = computeCoordEnergy(s,t,sourceTestPos(),targetTestPos());
+		(*m_candPairEnergy)(min(nums,numt),max(nums,numt)) = coordEnergy;
+		m_candidateEnergy += coordEnergy;
+
+		if(m_candidateEnergy < 0.0) {
+			OGDF_ASSERT(m_candidateEnergy > -0.00001);
+			m_candidateEnergy = 0.0;
+		}
+	}
+	OGDF_ASSERT(m_candidateEnergy >= -0.0001);
+}
+
+void NodePairEnergy::compCandEnergy(const node v, const node ignore, const DPoint newPos)
+{
 	int numv = (*m_nodeNums)[v];
 	m_candidateEnergy = energy();
 	ListIterator<node> it;
 	for(it = m_nonIsolated.begin(); it.valid(); ++ it) {
-		if(*it != v) {
-			int j = (*m_nodeNums)[*it];
+		int j = (*m_nodeNums)[*it];
+		if(*it != v && *it != ignore) {
 			m_candidateEnergy -= (*m_pairEnergy)(min(j,numv),max(j,numv));
-			m_candPairEnergy[*it] = computeCoordEnergy(v,*it,testPos(),currentPos(*it));
-			m_candidateEnergy += m_candPairEnergy[*it];
+			double coordEnergy = computeCoordEnergy(v,*it,newPos,currentPos(*it));
+			(*m_candPairEnergy)(min(j,numv),max(j,numv)) = coordEnergy;
+			m_candidateEnergy += coordEnergy;
 			if(m_candidateEnergy < 0.0) {
 				OGDF_ASSERT(m_candidateEnergy > -0.00001);
 				m_candidateEnergy = 0.0;
 			}
 		}
-		else m_candPairEnergy[*it] = 0.0;
+		else (*m_candPairEnergy)(min(j,numv),max(j,numv)) = 0.0;
 	}
-	OGDF_ASSERT(m_candidateEnergy >= -0.0001);
 }
 
 
 #ifdef OGDF_DEBUG
 void NodePairEnergy::printInternalData() const {
-	ListConstIterator<node> it;
-	for(it = m_nonIsolated.begin(); it.valid(); ++it) {
-		cout << "\nNode: " << (*m_nodeNums)[*it];
-		cout << " CandidatePairEnergy: " << m_candPairEnergy[*it];
-	}
+	cout << "\nCandidate energies:";
+	for(int i=1; i< m_nonIsolated.size(); i++)
+		for(int j=i+1; j <= m_nonIsolated.size(); j++)
+			if((*m_candPairEnergy)(i,j) != 0.0)
+				cout << "\nCandidateEnergy(" << i << ',' << j << ") = " << (*m_candPairEnergy)(i,j);
 	cout << "\nPair energies:";
 	for(int i=1; i< m_nonIsolated.size(); i++)
 		for(int j=i+1; j <= m_nonIsolated.size(); j++)
