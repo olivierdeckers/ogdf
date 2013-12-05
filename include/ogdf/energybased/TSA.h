@@ -70,9 +70,6 @@ public:
 
 	void setQuality(double quality);
 
-	//! Sets the number of iterations for each temperature step to \a steps.
-	//void setNumberOfIterations(int steps);
-
 	//! Adds an energy function \a F with a certain weight.
 	void addEnergyFunction(EnergyFunction *F, double weight);
 
@@ -88,15 +85,12 @@ public:
 private:
 	//! The default starting temperature.
 	const static double m_startingTemp;
-	//! Per default, the number of iterations per temperature are set as a constant multiple of the number of vertices.
-	//const static int m_iterationMultiplier; //May reintroduce this later for parallellism
 	//! The default end temperature
 	const static double m_defaultEndTemperature;
 
 	double m_temperature;          //!< The temperature during the annealing process.
 	double m_diskRadius;        //!< The radius of the disk around the old position of a vertex where the new position will be.
 	double m_energy;            //!< The current energy of the system.
-	//int m_numberOfIterations;   //!< The number of iterations per temperature step.
 	double m_quality;			//!< The quality/runtime tradeoff parameter: higher values means higher quality and higher runtime
 	double m_endTemperature;	//!< The stop condition for temperature
 

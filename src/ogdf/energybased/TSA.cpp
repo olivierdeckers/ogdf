@@ -53,7 +53,6 @@
 namespace ogdf {
 
 	const double TSA::m_startingTemp = 1e-2;
-	//const int TSA::m_iterationMultiplier = 25;  //best//30;ori
 	const double TSA::m_defaultEndTemperature = 1e-5;
 
 	//initializes internal data and the random number generator
@@ -62,11 +61,9 @@ namespace ogdf {
 	m_energy(0.0),
 	m_endTemperature(m_defaultEndTemperature),
 	m_quality(1.0)
-	//m_numberOfIterations(0)
 	{
 		
 	}
-
 
 	//allow resetting in between subsequent calls
 	void TSA::initParameters()
@@ -93,12 +90,6 @@ namespace ogdf {
 		OGDF_ASSERT(startTemp >= 0);
 		m_temperature=startTemp;
 	}
-
-	/*void TSA::setNumberOfIterations(int steps)
-	{
-		OGDF_ASSERT(steps >= 0);
-		m_numberOfIterations = steps;
-	}*/
 
 	//whenever an energy function is added, the initial energy of the new function
 	//is computed and added to the initial energy of the layout
@@ -173,48 +164,6 @@ namespace ogdf {
 		return v;
 	}
 
-	////chooses the initial radius of the disk as half the maximum of width and height of
-	////the initial layout or depending on the value of m_fineTune
-	//void TSA::computeFirstRadius(const GraphAttributes &AG)
-	//{
-	//	const Graph &G = AG.constGraph();
-	//	node v = G.firstNode();
-	//	double minX = AG.x(v);
-	//	double minY = AG.y(v);
-	//	double maxX = minX;
-	//	double maxY = minY;
-	//	forall_nodes(v,G) {
-	//		minX = min(minX,AG.x(v));
-	//		maxX = max(maxX,AG.x(v));
-	//		minY = min(minY,AG.y(v));
-	//		maxY = max(maxY,AG.y(v));
-	//	}
-	//	// compute bounding box of current layout
-	//	// make values nonzero
-	//	double w = maxX-minX+1.0;
-	//	double h = maxY-minY+1.0;
-
-	//	double ratio = h/w;
-
-	//	double W = sqrt(G.numberOfNodes() / ratio);
-
-	//	m_diskRadius = W / 5.0;//allow to move by a significant part of current layout size
-	//	m_diskRadius=max(m_diskRadius,max(maxX-minX,maxY-minY)/5.0);
-
-	//	//TODO: also use node sizes
-	//	/*
-	//	double lengthSum(0.0);
-	//	node v;
-	//	forall_nodes(v,m_G) {
-	//		const IntersectionRectangle &i = shape(v);
-	//		lengthSum += i.width();
-	//		lengthSum += i.width();
-	//		}
-	//		lengthSum /= (2*m_G.numberOfNodes());
-	//		// lengthSum is now the average of all lengths and widths
-	//	*/
-	//	//change the initial radius depending on the settings
-	//}
 
 	//steps through all energy functions and adds the initial energy computed by each
 	//function for the start layout
