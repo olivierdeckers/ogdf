@@ -136,6 +136,9 @@ namespace ogdf {
 
 	void Planarity::compCandEnergy()
 	{
+		m_crossingChanges.clear();
+		m_candidateEnergy = energy();
+
 		node s = sourceTestNode();
 		node t = targetTestNode();
 
@@ -149,7 +152,7 @@ namespace ogdf {
 			forall_adj_edges(e, s) if(e->target() == t) {
 				int e_num = (*m_edgeNums)[e];
 				ListIterator<edge> it;
-				for(it = m_nonSelfLoops.begin(); it.valid(); ++it) {
+				for(it = m_nonSelfLoops.begin(); it.valid(); ++it) if(*it != e) {
 					f = *it;
 					node s2 = f->source();
 					node t2 = f->target();
@@ -177,9 +180,7 @@ namespace ogdf {
 	// to position testPos().
 	void Planarity::compCandEnergy(const node v, const node ignore, const DPoint newPos)
 	{
-		m_candidateEnergy = energy();
 		edge e;
-		m_crossingChanges.clear();
 
 		forall_adj_edges(e,v) if(!e->isSelfLoop()) {
 			// first we compute the two endpoints of e if v is on its new position

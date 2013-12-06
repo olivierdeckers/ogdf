@@ -344,6 +344,6 @@ namespace ogdf {
 	}
 
 	double TSA::computeDiskRadius(double temperature) const {
-		return 50 * (temperature - 1e-6);
+		return min(500.0, 1e4 * (temperature - 1e-6)); //TODO enhance
 	}
 } //namespace

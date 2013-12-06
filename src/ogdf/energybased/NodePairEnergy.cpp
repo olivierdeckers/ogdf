@@ -127,6 +127,8 @@ void NodePairEnergy::internalCandidateTaken(const node n) {
 
 void NodePairEnergy::compCandEnergy()
 {
+	m_candidateEnergy = energy();
+
 	node s = sourceTestNode();
 	node t = targetTestNode();
 	int nums = (*m_nodeNums)[s];
@@ -147,13 +149,12 @@ void NodePairEnergy::compCandEnergy()
 			m_candidateEnergy = 0.0;
 		}
 	}
-	OGDF_ASSERT(m_candidateEnergy >= -0.0001);
+	OGDF_ASSERT(m_candidateEnergy >= 0);
 }
 
 void NodePairEnergy::compCandEnergy(const node v, const node ignore, const DPoint newPos)
 {
 	int numv = (*m_nodeNums)[v];
-	m_candidateEnergy = energy();
 	ListIterator<node> it;
 	for(it = m_nonIsolated.begin(); it.valid(); ++ it) {
 		int j = (*m_nodeNums)[*it];
