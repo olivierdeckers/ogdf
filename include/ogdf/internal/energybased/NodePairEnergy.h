@@ -66,6 +66,7 @@ public:
 	virtual ~NodePairEnergy() {
 		delete m_nodeNums;
 		delete m_pairEnergy;
+		delete m_candPairEnergy;
 	}
 
 	//computes the energy of the initial layout
