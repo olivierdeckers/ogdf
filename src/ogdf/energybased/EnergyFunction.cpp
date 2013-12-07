@@ -92,7 +92,7 @@ double EnergyFunction::computeCandidateEnergy(const edge e, const DPoint &newSou
 	m_sourceTestNode = e->source();
 	m_targetTestNode = e->target();
 	compCandEnergy();
-	OGDF_ASSERT(m_candidateEnergy >= 0.0);
+	OGDF_ASSERT(m_candidateEnergy > -1e-10);
 	return m_candidateEnergy;
 }
 

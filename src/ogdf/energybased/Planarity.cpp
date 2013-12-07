@@ -142,24 +142,45 @@ namespace ogdf {
 		node s = sourceTestNode();
 		node t = targetTestNode();
 
-		compCandEnergy(s, t, sourceTestPos());
-		
-		if(t != NULL) {
-			compCandEnergy(t, s, targetTestPos());
+		if(t == NULL) {
+			compCandEnergy(s, sourceTestPos());
+		}
+		else {
+			compCandEnergy(s, t, sourceTestPos(), targetTestPos());
+		}
+	}
 
-			//calculate candidate energy for moved edge
-			edge e,f;
-			forall_adj_edges(e, s) if(e->target() == t) {
+
+	/**
+	 * Calculate candidate energy for moved edges
+	 */
+	void Planarity::compCandEnergy(const node s, const node t, const DPoint newSourcePos, const DPoint newTargetPos)
+	{
+		edge e,f;
+
+		ListIterator<edge> it;
+		for(it = m_nonSelfLoops.begin(); it.valid(); ++it) 
+		{
+			e = (*it);
+			if(e->source() == s || e->target() == s || e->source() == t || e->target() == t) {
+				node s1 = e->source();
+				node t1 = e->target();
 				int e_num = (*m_edgeNums)[e];
-				ListIterator<edge> it;
-				for(it = m_nonSelfLoops.begin(); it.valid(); ++it) if(*it != e) {
-					f = *it;
+				ListIterator<edge> it2;
+				for(it2 = m_nonSelfLoops.begin(); it2.valid(); ++it2) if(*it2 != e && (*m_edgeNums)[*it2] > e_num) {
+					f = *it2;
 					node s2 = f->source();
 					node t2 = f->target();
 					int f_num = (*m_edgeNums)[f];
 
+					DPoint ps1 = (s1 == s) ? newSourcePos : (s1 == t) ? newTargetPos : currentPos(s1);
+					DPoint pt1 = (t1 == t) ? newTargetPos : (t1 == s) ? newSourcePos : currentPos(t1);
+					DPoint ps2 = (s2 == s) ? newSourcePos : (s2 == t) ? newTargetPos : currentPos(s2);
+					DPoint pt2 = (t2 == t) ? newTargetPos : (t2 == s) ? newSourcePos : currentPos(t2);
+
+
 					double intersectEnergy = 0;
-					bool cross = lowLevelIntersect(sourceTestPos(),targetTestPos(),currentPos(s2),currentPos(t2), intersectEnergy);
+					bool cross = lowLevelIntersect(ps1, pt1, ps2, pt2, intersectEnergy);
 					double priorIntersectEnergy = (*m_crossingMatrix)(min(e_num,f_num),max(e_num,f_num));
 
 					if(priorIntersectEnergy != intersectEnergy) {
@@ -178,7 +199,7 @@ namespace ogdf {
 
 	// computes the energy if the node returned by testNode() is moved
 	// to position testPos().
-	void Planarity::compCandEnergy(const node v, const node ignore, const DPoint newPos)
+	void Planarity::compCandEnergy(const node v, const DPoint newPos)
 	{
 		edge e;
 
@@ -186,10 +207,6 @@ namespace ogdf {
 			// first we compute the two endpoints of e if v is on its new position
 			node s = e->source();
 			node t = e->target();
-
-			if((s == v && t == ignore) || (s == ignore && t == v)) {
-				continue;
-			}
 
 			DPoint p1 = newPos;
 			DPoint p2 = (s==v)? currentPos(t) : currentPos(s);
@@ -201,10 +218,6 @@ namespace ogdf {
 				f = *it;
 				node s2 = f->source();
 				node t2 = f->target();
-
-				if((s2 == v && t2 == ignore) || (s2 == ignore && t2 == v)) {
-					continue;
-				}
 
 				if(s2 != s && s2 != t && t2 != s && t2 != t) {
 					double intersectEnergy = 0;
